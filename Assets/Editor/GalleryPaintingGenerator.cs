@@ -307,7 +307,8 @@ public static class GalleryPaintingGenerator
         Transform sourceTransform = frontRenderer.transform;
         GameObject backObject = new GameObject("Tuval Back");
         backObject.transform.SetParent(sourceTransform.parent, false);
-        backObject.transform.localPosition = sourceTransform.localPosition;
+        // Keep the white sheet just behind the real canvas to avoid z-fighting.
+        backObject.transform.localPosition = sourceTransform.localPosition + Vector3.back * 0.003f;
         backObject.transform.localRotation = sourceTransform.localRotation;
         backObject.transform.localScale = sourceTransform.localScale;
 
