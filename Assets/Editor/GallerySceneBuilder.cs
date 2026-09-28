@@ -42,6 +42,7 @@ public static class GallerySceneBuilder
 
         CreateGround();
         CreatePlayer();
+        CreateGalleryWall();
         CreateGalleryPainting();
         CreateLight();
 
@@ -95,34 +96,56 @@ public static class GallerySceneBuilder
         serializedController.ApplyModifiedPropertiesWithoutUndo();
     }
 
+    private static void CreateGalleryWall()
+    {
+        if (GameObject.Find("Gallery Wall") != null)
+            return;
+
+        GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        wall.name = "Gallery Wall";
+        wall.transform.position = new Vector3(0f, 3f, 4.5f);
+        wall.transform.localScale = new Vector3(12f, 6f, 0.3f);
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) shader = Shader.Find("Standard");
+        Material wallMaterial = new Material(shader);
+        wallMaterial.color = new Color(0.72f, 0.69f, 0.63f, 1f);
+        wall.GetComponent<Renderer>().sharedMaterial = wallMaterial;
+    }
+
     private static void CreateGalleryPainting()
     {
+        if (GameObject.Find("Gallery Painting") != null)
+            return;
+
         GameObject painting = new GameObject("Gallery Painting");
-        painting.transform.position = new Vector3(0f, 2.25f, 4f);
+        painting.transform.position = new Vector3(0f, 1.75f, 4.28f);
         painting.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+        BoxCollider collider = painting.AddComponent<BoxCollider>();
+        collider.size = new Vector3(1.35f, 1.0f, 0.16f);
+        collider.center = new Vector3(0f, 0f, 0f);
 
         GalleryPainting paintingScript = painting.AddComponent<GalleryPainting>();
         paintingScript.SetDisplayName("Mavi Galeri");
+        paintingScript.SetPickupScale(0.72f);
 
         Shader shader = Shader.Find("Universal Render Pipeline/Lit");
         if (shader == null) shader = Shader.Find("Standard");
 
-        CreatePanel(painting.transform, "Canvas", new Vector3(0f, 0f, 0f), new Vector3(2.35f, 1.7f, 0.10f), new Color(0.12f, 0.32f, 0.55f, 1f), shader);
-        CreatePanel(painting.transform, "TopFrame", new Vector3(0f, 0.91f, -0.01f), new Vector3(2.75f, 0.16f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
-        CreatePanel(painting.transform, "BottomFrame", new Vector3(0f, -0.91f, -0.01f), new Vector3(2.75f, 0.16f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
-        CreatePanel(painting.transform, "LeftFrame", new Vector3(-1.295f, 0f, -0.01f), new Vector3(0.16f, 1.7f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
-        CreatePanel(painting.transform, "RightFrame", new Vector3(1.295f, 0f, -0.01f), new Vector3(0.16f, 1.7f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "Canvas", new Vector3(0f, 0f, 0f), new Vector3(1.16f, 0.78f, 0.07f), new Color(0.12f, 0.32f, 0.55f, 1f), shader);
+        CreatePanel(painting.transform, "TopFrame", new Vector3(0f, 0.45f, -0.02f), new Vector3(1.42f, 0.10f, 0.16f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "BottomFrame", new Vector3(0f, -0.45f, -0.02f), new Vector3(1.42f, 0.10f, 0.16f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "LeftFrame", new Vector3(-0.66f, 0f, -0.02f), new Vector3(0.10f, 0.80f, 0.16f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "RightFrame", new Vector3(0.66f, 0f, -0.02f), new Vector3(0.10f, 0.80f, 0.16f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
 
-        CreatePanel(painting.transform, "InnerTop", new Vector3(0f, 0.76f, -0.065f), new Vector3(2.35f, 0.045f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
-        CreatePanel(painting.transform, "InnerBottom", new Vector3(0f, -0.76f, -0.065f), new Vector3(2.35f, 0.045f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
-        CreatePanel(painting.transform, "InnerLeft", new Vector3(-1.17f, 0f, -0.065f), new Vector3(0.045f, 1.48f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
-        CreatePanel(painting.transform, "InnerRight", new Vector3(1.17f, 0f, -0.065f), new Vector3(0.045f, 1.48f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
+        CreatePanel(painting.transform, "GoldTop", new Vector3(0f, 0.36f, -0.07f), new Vector3(1.12f, 0.035f, 0.05f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
+        CreatePanel(painting.transform, "GoldBottom", new Vector3(0f, -0.36f, -0.07f), new Vector3(1.12f, 0.035f, 0.05f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
 
         GameObject relief = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         relief.name = "ArtworkRelief";
         relief.transform.SetParent(painting.transform, false);
-        relief.transform.localPosition = new Vector3(0f, 0f, -0.075f);
-        relief.transform.localScale = new Vector3(1.1f, 0.72f, 0.12f);
+        relief.transform.localPosition = new Vector3(0f, 0f, -0.06f);
+        relief.transform.localScale = new Vector3(0.48f, 0.30f, 0.055f);
         Object.DestroyImmediate(relief.GetComponent<Collider>());
         Material reliefMaterial = new Material(shader);
         reliefMaterial.color = new Color(0.9f, 0.45f, 0.18f, 1f);
@@ -140,19 +163,6 @@ public static class GallerySceneBuilder
         material.color = color;
         panel.GetComponent<Renderer>().sharedMaterial = material;
         Object.DestroyImmediate(panel.GetComponent<Collider>());
-    }
-
-    private static void EnsurePaintingInScene()
-    {
-        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-        if (GameObject.Find("Gallery Painting") != null)
-            return;
-
-        CreateGalleryPainting();
-        EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene);
-        AssetDatabase.SaveAssets();
-        Debug.Log("Gallery painting added to the existing Main scene.");
     }
 
     private static void CreateLight()
