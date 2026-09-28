@@ -95,11 +95,9 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // Modelin yüzü +Z'dir. Yalnızca klasörün yönünü uygula:
         // Dik = dik, Yan = yatay. Resmin UV'sine ayrıca dönüş yok.
-        // Spawn'daki fiziksel yönü koru. Yan = 90° yatay.
-        transform.localRotation = Quaternion.Euler(0f, 180f, 0f) *
-            (isHorizontal
-                ? Quaternion.Euler(0f, 0f, -90f)
-                : Quaternion.identity);
+        transform.localRotation = isHorizontal
+            ? Quaternion.Euler(0f, 0f, 90f)
+            : Quaternion.identity;
 
         transform.localScale = Vector3.one * holdScale;
 
@@ -135,13 +133,15 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Tablo eldeyken sahip olduğu dönüşü KORU.
-        // Sadece ön yüzün yönünü duvar normaline çeviriyoruz.
-        // Böylece Yan tablonun 90° yatay dönüşü ve resmin yönü değişmez.
-        Quaternion alignToWall = Quaternion.FromToRotation(
-            transform.forward,
-            normal);
-        transform.rotation = alignToWall * transform.rotation;
+        // Modelin ön yüzü +Z'dir. LookRotation'ın forward'ı doğrudan
+        // duvar normaline bakacağı için ekstra 180 derece çevirmiyoruz.
+        Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
+        // Yan klasöründeki tablo duvara asıldığında fiziksel olarak 90° yatay olur.
+        Quaternion orientation = isHorizontal
+            ? Quaternion.Euler(0f, 0f, -90f)
+            : Quaternion.identity;
+
+        transform.rotation = faceWall * orientation;
 
         transform.localScale = Vector3.one * holdScale;
 
