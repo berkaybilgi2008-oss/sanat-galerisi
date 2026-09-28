@@ -14,7 +14,6 @@ public sealed class GalleryPainting : MonoBehaviour
     private bool held;
     private bool mounted;
     private bool isHorizontal;
-    private bool artworkCompensated;
 
     public void SetDisplayName(string value) => displayName = value;
     public void SetPickupScale(float value) => holdScale = value;
@@ -34,13 +33,12 @@ public sealed class GalleryPainting : MonoBehaviour
         // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
         // Tablo doğrudan kameranın sabit local noktasında tutulur.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
-        // Elde dönüşü doğrudan kameranın dünya rotasyonundan kuruyoruz.
-        // Yan = aynı bakış yönü + yalnızca 90° Z dönüşü.
-        Quaternion holdRotation = playerCamera.rotation * Quaternion.Euler(
+        // Elde sabit pozisyon: önce kameraya bak, sonra yalnızca
+        // Yan tablonun sabit duruşunu 90° döndür.
+        transform.localRotation = Quaternion.Euler(
             0f,
             180f,
             isHorizontal ? -90f : 0f);
-        transform.rotation = holdRotation;
     }
 
     private void Update()
@@ -95,8 +93,9 @@ public sealed class GalleryPainting : MonoBehaviour
         // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // İlk frame'de de LateUpdate beklemeden aynı dünya rotasyonunu ver.
-        transform.rotation = playerCamera.rotation * Quaternion.Euler(
+        // Sabit eldeki pozisyonu doğrudan ver.
+        // Resim/UV değişmez.
+        transform.localRotation = Quaternion.Euler(
             0f,
             180f,
             isHorizontal ? -90f : 0f);
@@ -135,13 +134,12 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Önce tabloyu duvara bakacak şekilde yerleştir.
-        // Sonra SADECE Yan tablonun kendi yüzeyinde 90° döndür.
-        Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
-        transform.rotation = faceWall;
+        // Duvardaki sabit pozisyon: duvara bak, ardından yalnızca
+        // Yan tablonun kendi yüzeyinde 90° döndür.
+        transform.rotation = Quaternion.LookRotation(normal, Vector3.up);
 
         if (isHorizontal)
-            transform.Rotate(Vector3.forward, -90f, Space.Self);
+            transform.Rotate(0f, 0f, -90f, Space.Self);
 
         transform.localScale = Vector3.one * holdScale;
 
