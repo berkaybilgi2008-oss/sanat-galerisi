@@ -34,12 +34,13 @@ public sealed class GalleryPainting : MonoBehaviour
         // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
         // Tablo doğrudan kameranın sabit local noktasında tutulur.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
-        // Kameranın +Z yönü oyuncudan dışarı baktığı için tabloyu 180° Y
-        // döndürerek yüzünü oyuncuya çeviriyoruz. Yan ise ayrıca 90° yatay.
-        transform.localRotation = Quaternion.Euler(
+        // Elde dönüşü doğrudan kameranın dünya rotasyonundan kuruyoruz.
+        // Yan = aynı bakış yönü + yalnızca 90° Z dönüşü.
+        Quaternion holdRotation = playerCamera.rotation * Quaternion.Euler(
             0f,
             180f,
             isHorizontal ? -90f : 0f);
+        transform.rotation = holdRotation;
     }
 
     private void Update()
@@ -94,9 +95,8 @@ public sealed class GalleryPainting : MonoBehaviour
         // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Elde sadece objenin fiziksel pozisyonunu 90° döndürüyoruz.
-        // Spawn'daki resme/UV'ye dokunulmuyor.
-        transform.localRotation = Quaternion.Euler(
+        // İlk frame'de de LateUpdate beklemeden aynı dünya rotasyonunu ver.
+        transform.rotation = playerCamera.rotation * Quaternion.Euler(
             0f,
             180f,
             isHorizontal ? -90f : 0f);
