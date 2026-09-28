@@ -90,7 +90,8 @@ public static class GalleryPaintingGenerator
 
         CreateWallMountPoint();
         EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-        EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());\n        Debug.Log($"Gallery: {count} tablo oluşturuldu.");
+        EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+        Debug.Log($"Gallery: {count} tablo oluşturuldu.");
     }
 
     private static void RemoveOldPrototypePaintings()
