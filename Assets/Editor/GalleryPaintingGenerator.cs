@@ -212,6 +212,9 @@ public static class GalleryPaintingGenerator
             }
 
             renderer.sharedMaterials = materials;
+
+            if (HasCanvasMaterial(materials))
+                CreateWhiteCanvasBack(renderer, painting);
         }
 
         BoxCollider box = painting.GetComponent<BoxCollider>();
@@ -281,6 +284,58 @@ public static class GalleryPaintingGenerator
 
         mesh.uv = uv;
         meshFilter.sharedMesh = mesh;
+    }
+
+    private static bool HasCanvasMaterial(Material[] materials)
+    {
+        foreach (Material material in materials)
+        {
+            if (material != null &&
+                material.name.IndexOf("Tuval", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void CreateWhiteCanvasBack(Renderer frontRenderer, GameObject painting)
+    {
+        MeshFilter sourceFilter = frontRenderer.GetComponent<MeshFilter>();
+        if (sourceFilter == null || sourceFilter.sharedMesh == null)
+            return;
+
+        Transform sourceTransform = frontRenderer.transform;
+        GameObject backObject = new GameObject("Tuval Back");
+        backObject.transform.SetParent(sourceTransform.parent, false);
+        backObject.transform.localPosition = sourceTransform.localPosition;
+        backObject.transform.localRotation = sourceTransform.localRotation;
+        backObject.transform.localScale = sourceTransform.localScale;
+
+        Mesh backMesh = UnityEngine.Object.Instantiate(sourceFilter.sharedMesh);
+        backMesh.name = sourceFilter.sharedMesh.name + " - White Back";
+
+        int[] triangles = backMesh.triangles;
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            int temp = triangles[i];
+            triangles[i] = triangles[i + 2];
+            triangles[i + 2] = temp;
+        }
+        backMesh.triangles = triangles;
+        backMesh.RecalculateNormals();
+
+        MeshFilter backFilter = backObject.AddComponent<MeshFilter>();
+        backFilter.sharedMesh = backMesh;
+
+        MeshRenderer backRenderer = backObject.AddComponent<MeshRenderer>();
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+            shader = Shader.Find("Standard");
+
+        Material white = new Material(shader);
+        white.name = "Tuval Back - White";
+        white.color = Color.white;
+        backRenderer.sharedMaterial = white;
     }
 
     private sealed class PaintingSource
