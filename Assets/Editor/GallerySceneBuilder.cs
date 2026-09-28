@@ -21,7 +21,13 @@ public static class GallerySceneBuilder
         if (EditorApplication.isPlayingOrWillChangePlaymode)
             return;
 
-        if (File.Exists(ScenePath) || File.Exists(BuiltMarker))
+        if (File.Exists(ScenePath))
+        {
+            EnsurePaintingInScene();
+            return;
+        }
+
+        if (File.Exists(BuiltMarker))
             return;
 
         Build();
@@ -92,37 +98,61 @@ public static class GallerySceneBuilder
     private static void CreateGalleryPainting()
     {
         GameObject painting = new GameObject("Gallery Painting");
-        painting.transform.position = new Vector3(0f, 2.2f, 4f);
+        painting.transform.position = new Vector3(0f, 2.25f, 4f);
         painting.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-
-        BoxCollider collider = painting.AddComponent<BoxCollider>();
-        collider.size = new Vector3(2.6f, 2f, 0.12f);
-
-        GameObject canvas = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        canvas.name = "Artwork";
-        canvas.transform.SetParent(painting.transform, false);
-        canvas.transform.localScale = new Vector3(2.35f, 1.75f, 0.06f);
-        Object.DestroyImmediate(canvas.GetComponent<Collider>());
-
-        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-        if (shader == null) shader = Shader.Find("Standard");
-        Material artworkMaterial = new Material(shader);
-        artworkMaterial.color = new Color(0.12f, 0.32f, 0.55f, 1f);
-        canvas.GetComponent<Renderer>().sharedMaterial = artworkMaterial;
-
-        GameObject frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        frame.name = "Frame";
-        frame.transform.SetParent(painting.transform, false);
-        frame.transform.localPosition = new Vector3(0f, 0f, 0.045f);
-        frame.transform.localScale = new Vector3(2.6f, 2f, 0.08f);
-        Object.DestroyImmediate(frame.GetComponent<Collider>());
-
-        Material frameMaterial = new Material(shader);
-        frameMaterial.color = new Color(0.04f, 0.025f, 0.015f, 1f);
-        frame.GetComponent<Renderer>().sharedMaterial = frameMaterial;
 
         GalleryPainting paintingScript = painting.AddComponent<GalleryPainting>();
         paintingScript.SetDisplayName("Mavi Galeri");
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) shader = Shader.Find("Standard");
+
+        CreatePanel(painting.transform, "Canvas", new Vector3(0f, 0f, 0f), new Vector3(2.35f, 1.7f, 0.10f), new Color(0.12f, 0.32f, 0.55f, 1f), shader);
+        CreatePanel(painting.transform, "TopFrame", new Vector3(0f, 0.91f, -0.01f), new Vector3(2.75f, 0.16f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "BottomFrame", new Vector3(0f, -0.91f, -0.01f), new Vector3(2.75f, 0.16f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "LeftFrame", new Vector3(-1.295f, 0f, -0.01f), new Vector3(0.16f, 1.7f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+        CreatePanel(painting.transform, "RightFrame", new Vector3(1.295f, 0f, -0.01f), new Vector3(0.16f, 1.7f, 0.22f), new Color(0.05f, 0.025f, 0.012f, 1f), shader);
+
+        CreatePanel(painting.transform, "InnerTop", new Vector3(0f, 0.76f, -0.065f), new Vector3(2.35f, 0.045f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
+        CreatePanel(painting.transform, "InnerBottom", new Vector3(0f, -0.76f, -0.065f), new Vector3(2.35f, 0.045f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
+        CreatePanel(painting.transform, "InnerLeft", new Vector3(-1.17f, 0f, -0.065f), new Vector3(0.045f, 1.48f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
+        CreatePanel(painting.transform, "InnerRight", new Vector3(1.17f, 0f, -0.065f), new Vector3(0.045f, 1.48f, 0.06f), new Color(0.8f, 0.55f, 0.18f, 1f), shader);
+
+        GameObject relief = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        relief.name = "ArtworkRelief";
+        relief.transform.SetParent(painting.transform, false);
+        relief.transform.localPosition = new Vector3(0f, 0f, -0.075f);
+        relief.transform.localScale = new Vector3(1.1f, 0.72f, 0.12f);
+        Object.DestroyImmediate(relief.GetComponent<Collider>());
+        Material reliefMaterial = new Material(shader);
+        reliefMaterial.color = new Color(0.9f, 0.45f, 0.18f, 1f);
+        relief.GetComponent<Renderer>().sharedMaterial = reliefMaterial;
+    }
+
+    private static void CreatePanel(Transform parent, string name, Vector3 position, Vector3 scale, Color color, Shader shader)
+    {
+        GameObject panel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        panel.name = name;
+        panel.transform.SetParent(parent, false);
+        panel.transform.localPosition = position;
+        panel.transform.localScale = scale;
+        Material material = new Material(shader);
+        material.color = color;
+        panel.GetComponent<Renderer>().sharedMaterial = material;
+        Object.DestroyImmediate(panel.GetComponent<Collider>());
+    }
+
+    private static void EnsurePaintingInScene()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        if (GameObject.Find("Gallery Painting") != null)
+            return;
+
+        CreateGalleryPainting();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Gallery painting added to the existing Main scene.");
     }
 
     private static void CreateLight()
