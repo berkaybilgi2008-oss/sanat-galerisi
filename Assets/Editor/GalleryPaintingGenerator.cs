@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class GalleryPaintingGenerator
 {
-    private const string ImageRoot = "Assets/Resimler";
+    private const string ImageRoot = "Assets/resim";
     private const string ModelPath = "Assets/tablo/tablo.obj";
     private const string GeneratedRootName = "Generated Paintings";
     private const int MaxPaintings = 15;
@@ -90,7 +90,7 @@ public static class GalleryPaintingGenerator
 
         CreateWallMountPoint();
         EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-        Debug.Log($"Gallery: {count} tablo oluşturuldu.");
+        EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());\n        Debug.Log($"Gallery: {count} tablo oluşturuldu.");
     }
 
     private static void RemoveOldPrototypePaintings()
