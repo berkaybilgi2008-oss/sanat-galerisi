@@ -191,12 +191,6 @@ public static class GalleryPaintingGenerator
                     material.name.IndexOf("Tuval", StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
 
-                // Yan klasöründeki görsel, fiziksel tablo yataya dönerken
-                // görselin de yatay kalması için tuval UV'sinde ters yönde döndürülür.
-                // Yön seçimi yalnızca klasörden gelir; resmin piksel ölçülerine bakılmaz.
-                if (source.IsHorizontal)
-                    RotateCanvasUv(renderer);
-
                 Material copy = new Material(material);
                 copy.name = "Tuval - " + source.FileName;
                 copy.mainTexture = source.Texture;
