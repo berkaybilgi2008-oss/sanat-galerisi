@@ -169,6 +169,18 @@ public static class GallerySceneBuilder
         Object.DestroyImmediate(panel.GetComponent<Collider>());
     }
 
+    private static void EnsurePaintingInScene()
+    {
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+
+        CreateGalleryWall();
+        CreateGalleryPainting();
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+    }
+
     private static void CreateLight()
     {
         GameObject lightObject = new GameObject("Directional Light");
