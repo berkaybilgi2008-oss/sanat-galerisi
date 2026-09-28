@@ -74,10 +74,15 @@ public static class GalleryPaintingGenerator
             // Böylece resmin uzun kenarı fiziksel tablonun uzun kenarıyla
             // aynı yönde kalır; sadece çerçeveyi değil resmi de birlikte döndürürüz.
             Quaternion faceForward = Quaternion.Euler(0f, 180f, 0f);
-            Quaternion turnHorizontal = Quaternion.Euler(0f, 0f, 90f);
-            painting.transform.rotation = source.IsVertical
-                ? faceForward
-                : faceForward * turnHorizontal;
+
+            // The OBJ canvas is already mapped 1:1 to the Tuval material.
+            // Rotate the complete painting around its local surface normal for
+            // horizontal artwork so the artwork and physical frame share the
+            // exact same long/short edge orientation.
+            painting.transform.rotation = faceForward;
+
+            if (source.IsHorizontal)
+                painting.transform.Rotate(0f, 0f, -90f, Space.Self);
             painting.transform.localScale = Vector3.one * PaintingScale;
 
             ConfigurePainting(painting, source);
