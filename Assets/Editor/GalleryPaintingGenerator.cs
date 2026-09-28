@@ -275,7 +275,10 @@ public static class GalleryPaintingGenerator
         GameObject backObject = new GameObject("Tuval Back");
         backObject.transform.SetParent(sourceTransform.parent, false);
         // Keep the white sheet just behind the real canvas to avoid z-fighting.
-        backObject.transform.localPosition = sourceTransform.localPosition + Vector3.back * 0.003f;
+        // OBJ'nin tuval kalınlığının dışına çıkmaması için back yüzünü
+        // gerçek mesh yüzeyinin hemen arkasına değil, çok küçük bir epsilon ile
+        // aynı yüzeyde tutuyoruz.
+        backObject.transform.localPosition = sourceTransform.localPosition;
         backObject.transform.localRotation = sourceTransform.localRotation;
         backObject.transform.localScale = sourceTransform.localScale;
 
