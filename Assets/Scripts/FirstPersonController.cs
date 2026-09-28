@@ -13,6 +13,7 @@ public sealed class FirstPersonController : MonoBehaviour
     private CharacterController controller;
     private float verticalVelocity;
     private float cameraPitch;
+    private bool jumpQueued;
 
     private void Awake()
     {
@@ -27,6 +28,8 @@ public sealed class FirstPersonController : MonoBehaviour
             return;
 
         Look();
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+            jumpQueued = true;
         Move();
 
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
@@ -74,11 +77,17 @@ public sealed class FirstPersonController : MonoBehaviour
             if (verticalVelocity < 0f)
                 verticalVelocity = -2f;
 
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
+            if (jumpQueued)
+            {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                jumpQueued = false;
+            }
         }
 
         verticalVelocity += gravity * Time.deltaTime;
         controller.Move((horizontal + Vector3.up * verticalVelocity) * Time.deltaTime);
+
+        if (controller.isGrounded && verticalVelocity < 0f)
+            verticalVelocity = -2f;
     }
 }
