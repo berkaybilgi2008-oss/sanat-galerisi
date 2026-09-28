@@ -14,6 +14,7 @@ public sealed class GalleryPainting : MonoBehaviour
     private bool held;
     private bool mounted;
     private bool isHorizontal;
+    private bool artworkCompensated;
 
     public void SetDisplayName(string value) => displayName = value;
     public void SetPickupScale(float value) => holdScale = value;
@@ -61,6 +62,38 @@ public sealed class GalleryPainting : MonoBehaviour
         TryPickUp();
     }
 
+    private void RotateArtworkUvForHorizontalFrame()
+    {
+        if (!isHorizontal || artworkCompensated)
+            return;
+
+        foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+        {
+            if (renderer.sharedMaterial == null ||
+                renderer.sharedMaterial.name.IndexOf("Tuval", System.StringComparison.OrdinalIgnoreCase) < 0)
+                continue;
+
+            MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
+            if (meshFilter == null || meshFilter.sharedMesh == null)
+                continue;
+
+            Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
+            mesh.name = meshFilter.sharedMesh.name + " - Held Yan UV";
+            Vector2[] uv = mesh.uv;
+
+            // Spawn'da Yan resmi dik çerçevede yatay göstermek için UV döndürülmüştü.
+            // Çerçeveyi şimdi 90° fiziksel döndürürken resmi dünya üzerinde yatay
+            // tutmak için bunun tersini uyguluyoruz.
+            for (int i = 0; i < uv.Length; i++)
+                uv[i] = new Vector2(uv[i].y, 1f - uv[i].x);
+
+            mesh.uv = uv;
+            meshFilter.sharedMesh = mesh;
+            artworkCompensated = true;
+            break;
+        }
+    }
+
     private void TryPickUp()
     {
         Camera camera = Camera.main;
@@ -76,6 +109,10 @@ public sealed class GalleryPainting : MonoBehaviour
 
         playerCamera = camera.transform;
         held = true;
+
+        // Yan tabloda çerçeveyi fiziksel olarak yatay çevirirken,
+        // spawn'da doğru görünen resmi yatay tut.
+        RotateArtworkUvForHorizontalFrame();
 
         body.isKinematic = true;
         body.useGravity = false;
