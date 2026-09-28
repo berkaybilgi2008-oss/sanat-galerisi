@@ -52,6 +52,8 @@ public static class GalleryPaintingGenerator
 
     private static void Generate(bool force)
     {
+        RemoveOldPrototypePaintings();
+
         GameObject existing = GameObject.Find(GeneratedRootName);
         if (force && existing != null)
             UnityEngine.Object.DestroyImmediate(existing);
@@ -101,6 +103,17 @@ public static class GalleryPaintingGenerator
         EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
         Debug.Log($"Gallery: {count} tablo oluşturuldu. Kaynak: Assets/Resimler");
+    }
+
+    private static void RemoveOldPrototypePaintings()
+    {
+        string[] oldNames = { "Gallery Painting V2", "Gallery Painting" };
+        foreach (string oldName in oldNames)
+        {
+            GameObject old = GameObject.Find(oldName);
+            if (old != null)
+                UnityEngine.Object.DestroyImmediate(old);
+        }
     }
 
     private static List<PaintingSource> FindPaintingSources()
