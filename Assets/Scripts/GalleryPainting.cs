@@ -3,35 +3,26 @@ using UnityEngine.InputSystem;
 
 public sealed class GalleryPainting : MonoBehaviour
 {
-    [SerializeField] private string displayName = "Mavi Galeri";
-    [SerializeField] private Key toggleKey = Key.E;
-    [SerializeField] private Vector3 holdPosition = new Vector3(0.35f, -0.15f, 0.8f);
-    [SerializeField] private Vector3 holdRotation = new Vector3(0f, 0f, 0f);
-    [SerializeField] private float holdScale = 0.72f;
+    [SerializeField] private string displayName = "Tablo";
+    [SerializeField] private Key interactKey = Key.E;
+    [SerializeField] private float pickupDistance = 3f;
+    [SerializeField] private float holdScale = 0.55f;
 
-    private Transform originalParent;
-    private Vector3 originalPosition;
-    private Quaternion originalRotation;
-    private Vector3 originalScale;
+    private Rigidbody body;
     private Transform playerCamera;
+    private Transform wallAnchor;
     private bool held;
+    private bool mounted;
+    private bool isHorizontal;
 
-    public void SetDisplayName(string value)
-    {
-        displayName = value;
-    }
-
-    public void SetPickupScale(float value)
-    {
-        holdScale = value;
-    }
+    public void SetDisplayName(string value) => displayName = value;
+    public void SetPickupScale(float value) => holdScale = value;
+    public void SetHorizontal(bool value) => isHorizontal = value;
 
     private void Awake()
     {
-        originalParent = transform.parent;
-        originalPosition = transform.position;
-        originalRotation = transform.rotation;
-        originalScale = transform.localScale;
+        body = GetComponent<Rigidbody>();
+        if (body == null) body = gameObject.AddComponent<Rigidbody>();
     }
 
     private void Update()
@@ -39,13 +30,19 @@ public sealed class GalleryPainting : MonoBehaviour
         if (Keyboard.current == null)
             return;
 
-        if (Keyboard.current[toggleKey].wasPressedThisFrame)
+        if (!Keyboard.current[interactKey].wasPressedThisFrame)
+            return;
+
+        if (mounted)
+            return;
+
+        if (held)
         {
-            if (held)
-                Drop();
-            else
-                TryPickUp();
+            TryMountOrDrop();
+            return;
         }
+
+        TryPickUp();
     }
 
     private void TryPickUp()
@@ -55,50 +52,113 @@ public sealed class GalleryPainting : MonoBehaviour
             return;
 
         Ray ray = new Ray(camera.transform.position, camera.transform.forward);
-        RaycastHit[] hits = Physics.RaycastAll(ray, 3f);
-        bool hitPainting = false;
-        foreach (RaycastHit candidate in hits)
-        {
-            if (candidate.transform == transform || candidate.transform.IsChildOf(transform))
-            {
-                hitPainting = true;
-                break;
-            }
-        }
+        if (!Physics.Raycast(ray, out RaycastHit hit, pickupDistance))
+            return;
 
-        if (!hitPainting)
+        if (hit.transform != transform && !hit.transform.IsChildOf(transform))
             return;
 
         playerCamera = camera.transform;
-        originalParent = transform.parent;
-        originalPosition = transform.position;
-        originalRotation = transform.rotation;
-        originalScale = transform.localScale;
+        held = true;
+
+        body.isKinematic = true;
+        body.useGravity = false;
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+
+        foreach (Collider collider in GetComponentsInChildren<Collider>())
+            collider.enabled = false;
 
         transform.SetParent(playerCamera, false);
-        transform.localPosition = new Vector3(0.35f, -0.18f, 0.75f);
-        transform.localRotation = Quaternion.Euler(holdRotation);
+        transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
+
+        // Elde de modelin yatay/dik yönünü koru.
+        transform.localRotation = isHorizontal
+            ? Quaternion.Euler(0f, 0f, 90f)
+            : Quaternion.identity;
+
         transform.localScale = Vector3.one * holdScale;
 
-        foreach (Collider c in GetComponentsInChildren<Collider>())
-            c.enabled = false;
-
-        held = true;
         Debug.Log("Tablo alındı: " + displayName);
+    }
+
+    private void TryMountOrDrop()
+    {
+        Camera camera = Camera.main;
+        if (camera == null)
+            return;
+
+        Ray ray = new Ray(camera.transform.position, camera.transform.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 2.5f))
+        {
+            if (hit.collider != null && hit.collider.name == "Gallery Wall")
+            {
+                MountToWall(hit.point, hit.normal);
+                return;
+            }
+        }
+
+        Drop();
+    }
+
+    private void MountToWall(Vector3 hitPoint, Vector3 wallNormal)
+    {
+        Transform anchor = GetOrCreateMountAnchor();
+
+        transform.SetParent(anchor, true);
+
+        Vector3 normal = wallNormal.normalized;
+        transform.position = hitPoint + normal * 0.08f;
+
+        // Modelin yüzü duvarın önüne baksın.
+        Quaternion faceWall = Quaternion.LookRotation(-normal, Vector3.up);
+
+        // OBJ doğal hali dikey; yatay tablo için Z ekseninde 90 derece.
+        transform.rotation = faceWall * (isHorizontal
+            ? Quaternion.Euler(0f, 0f, 90f)
+            : Quaternion.identity);
+
+        transform.localScale = Vector3.one * holdScale;
+
+        body.isKinematic = true;
+        body.useGravity = false;
+
+        foreach (Collider collider in GetComponentsInChildren<Collider>())
+            collider.enabled = true;
+
+        held = false;
+        mounted = true;
+        playerCamera = null;
+        wallAnchor = anchor;
+
+        Debug.Log("Tablo duvara asıldı: " + displayName);
     }
 
     private void Drop()
     {
-        transform.SetParent(originalParent, true);
-        transform.position = originalPosition;
-        transform.rotation = originalRotation;
-        transform.localScale = originalScale;
+        transform.SetParent(null, true);
 
-        foreach (Collider c in GetComponentsInChildren<Collider>())
-            c.enabled = true;
+        body.isKinematic = false;
+        body.useGravity = true;
+        body.WakeUp();
+
+        foreach (Collider collider in GetComponentsInChildren<Collider>())
+            collider.enabled = true;
 
         held = false;
         playerCamera = null;
+
         Debug.Log("Tablo bırakıldı: " + displayName);
+    }
+
+    private Transform GetOrCreateMountAnchor()
+    {
+        GameObject existing = GameObject.Find("Wall Mounted Paintings");
+        if (existing != null)
+            return existing.transform;
+
+        GameObject root = new GameObject("Wall Mounted Paintings");
+        return root.transform;
     }
 }
