@@ -133,15 +133,14 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Modelin ön yüzü +Z'dir. LookRotation'ın forward'ı doğrudan
-        // duvar normaline bakacağı için ekstra 180 derece çevirmiyoruz.
-        Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
-        // Yan klasöründeki tablo duvara asıldığında fiziksel olarak 90° yatay olur.
-        Quaternion orientation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, -90f)
-            : Quaternion.identity;
+        // Spawn'daki tablonun mevcut "up" yönünü referans alıyoruz.
+        // Bu yönü duvar düzlemine taşıyoruz; böylece duvara geçerken
+        // resmin kendi dönüşü değişmiyor, sadece tablo duvara bakıyor.
+        Vector3 wallUp = Vector3.ProjectOnPlane(transform.up, normal).normalized;
+        if (wallUp.sqrMagnitude < 0.0001f)
+            wallUp = Vector3.ProjectOnPlane(Vector3.up, normal).normalized;
 
-        transform.rotation = faceWall * orientation;
+        transform.rotation = Quaternion.LookRotation(normal, wallUp);
 
         transform.localScale = Vector3.one * holdScale;
 
