@@ -25,6 +25,19 @@ public sealed class GalleryPainting : MonoBehaviour
         if (body == null) body = gameObject.AddComponent<Rigidbody>();
     }
 
+    private void LateUpdate()
+    {
+        if (!held || playerCamera == null)
+            return;
+
+        // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
+        // Tablo doğrudan kameranın sabit local noktasında tutulur.
+        transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
+        transform.localRotation = isHorizontal
+            ? Quaternion.Euler(0f, 0f, 90f)
+            : Quaternion.identity;
+    }
+
     private void Update()
     {
         if (Keyboard.current == null)
@@ -63,6 +76,7 @@ public sealed class GalleryPainting : MonoBehaviour
 
         body.isKinematic = true;
         body.useGravity = false;
+        body.interpolation = RigidbodyInterpolation.None;
         body.linearVelocity = Vector3.zero;
         body.angularVelocity = Vector3.zero;
 
@@ -79,7 +93,7 @@ public sealed class GalleryPainting : MonoBehaviour
         // Modelin yüzü +Z'dir. Yalnızca klasörün yönünü uygula:
         // Dik = dik, Yan = yatay. Resmin UV'sine ayrıca dönüş yok.
         transform.localRotation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, -90f)
+            ? Quaternion.Euler(0f, 0f, 90f)
             : Quaternion.identity;
 
         transform.localScale = Vector3.one * holdScale;
@@ -119,8 +133,9 @@ public sealed class GalleryPainting : MonoBehaviour
         // Modelin ön yüzü +Z'dir. LookRotation'ın forward'ı doğrudan
         // duvar normaline bakacağı için ekstra 180 derece çevirmiyoruz.
         Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
+        // Yan klasöründeki tablo duvara asıldığında fiziksel olarak 90° yatay olur.
         Quaternion orientation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, -90f)
+            ? Quaternion.Euler(0f, 0f, 90f)
             : Quaternion.identity;
 
         transform.rotation = faceWall * orientation;
