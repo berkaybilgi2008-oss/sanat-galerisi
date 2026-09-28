@@ -81,11 +81,11 @@ public sealed class GalleryPainting : MonoBehaviour
             mesh.name = meshFilter.sharedMesh.name + " - Held Yan UV";
             Vector2[] uv = mesh.uv;
 
-            // Spawn'da Yan resmi dik çerçevede yatay göstermek için UV döndürülmüştü.
-            // Çerçeveyi şimdi 90° fiziksel döndürürken resmi dünya üzerinde yatay
-            // tutmak için bunun tersini uyguluyoruz.
+            // Spawn'da Yan resmi dik çerçevede yatay gösteriliyor.
+            // Çerçeveyi 90° fiziksel döndürdüğümüzde resmin dünya üzerindeki
+            // yatay yönünü korumak için karşı yönde UV dönüşü uyguluyoruz.
             for (int i = 0; i < uv.Length; i++)
-                uv[i] = new Vector2(uv[i].y, 1f - uv[i].x);
+                uv[i] = new Vector2(1f - uv[i].y, uv[i].x);
 
             mesh.uv = uv;
             meshFilter.sharedMesh = mesh;
