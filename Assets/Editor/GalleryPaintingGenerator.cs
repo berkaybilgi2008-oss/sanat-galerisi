@@ -274,9 +274,10 @@ public static class GalleryPaintingGenerator
         mesh.name = meshFilter.sharedMesh.name + " - Gallery Yan UV";
         Vector2[] uv = mesh.uv;
 
-        // 90° texture rotation, opposite to the physical Yan frame rotation.
+        // 90° rotation for Yan artwork, then flip top-to-bottom.
+        // The folder decides the orientation; no image dimension checks are used.
         for (int i = 0; i < uv.Length; i++)
-            uv[i] = new Vector2(uv[i].y, 1f - uv[i].x);
+            uv[i] = new Vector2(uv[i].y, uv[i].x);
 
         mesh.uv = uv;
         meshFilter.sharedMesh = mesh;
