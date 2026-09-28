@@ -232,8 +232,8 @@ public static class GalleryPaintingGenerator
             body = painting.AddComponent<Rigidbody>();
 
         body.mass = 0.8f;
-        body.drag = 0.15f;
-        body.angularDrag = 0.5f;
+        body.linearDamping = 0.15f;
+        body.angularDamping = 0.5f;
         body.useGravity = true;
         body.isKinematic = false;
         body.interpolation = RigidbodyInterpolation.Interpolate;
