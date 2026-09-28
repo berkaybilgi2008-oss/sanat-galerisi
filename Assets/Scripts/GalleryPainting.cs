@@ -112,7 +112,7 @@ public sealed class GalleryPainting : MonoBehaviour
         transform.position = hitPoint + normal * 0.08f;
 
         // Modelin yüzü duvarın önüne baksın.
-        Quaternion faceWall = Quaternion.LookRotation(-normal, Vector3.up);
+        Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
 
         // OBJ doğal hali dikey; yatay tablo için Z ekseninde 90 derece.
         transform.rotation = faceWall * (isHorizontal
