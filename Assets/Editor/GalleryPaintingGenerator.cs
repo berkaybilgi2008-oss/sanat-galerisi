@@ -68,21 +68,13 @@ public static class GalleryPaintingGenerator
             painting.transform.SetParent(root.transform, true);
             painting.transform.position = positions[i];
 
-            // Modelin doğal uzun kenarı Y eksenindedir.
-            // Dik resimde model dik kalır. Yan resimde ise modelin tamamı
-            // (çerçeve + tuval + resim) kendi yüzey ekseninde 90 derece döner.
-            // Böylece resmin uzun kenarı fiziksel tablonun uzun kenarıyla
-            // aynı yönde kalır; sadece çerçeveyi değil resmi de birlikte döndürürüz.
-            Quaternion faceForward = Quaternion.Euler(0f, 180f, 0f);
-
-            // The OBJ canvas is already mapped 1:1 to the Tuval material.
-            // Rotate the complete painting around its local surface normal for
-            // horizontal artwork so the artwork and physical frame share the
-            // exact same long/short edge orientation.
-            painting.transform.rotation = faceForward;
-
-            if (source.IsHorizontal)
-                painting.transform.Rotate(0f, 0f, -90f, Space.Self);
+            // OBJ'nin ön yüzü +Z yönündedir. Yön bilgisini yalnızca klasörden
+            // alıyoruz: Dik = 0 derece, Yan = 90 derece yüzey dönüşü.
+            // Resmin UV'sine ayrıca dönüş uygulamıyoruz; çerçeve ve resim
+            // aynı fiziksel dönüşü paylaşır.
+            painting.transform.rotation = source.IsHorizontal
+                ? Quaternion.Euler(0f, 0f, -90f)
+                : Quaternion.identity;
             painting.transform.localScale = Vector3.one * PaintingScale;
 
             ConfigurePainting(painting, source);
@@ -265,25 +257,6 @@ public static class GalleryPaintingGenerator
 
         interaction.SetDisplayName(source.Artist + " - " + source.FileName);
         interaction.SetHorizontal(source.IsHorizontal);
-    }
-
-    private static void RotateCanvasUv(Renderer renderer)
-    {
-        MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
-        if (meshFilter == null || meshFilter.sharedMesh == null)
-            return;
-
-        Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
-        mesh.name = meshFilter.sharedMesh.name + " - Gallery Yan UV";
-        Vector2[] uv = mesh.uv;
-
-        // 90° rotation for Yan artwork, then flip top-to-bottom.
-        // The folder decides the orientation; no image dimension checks are used.
-        for (int i = 0; i < uv.Length; i++)
-            uv[i] = new Vector2(uv[i].y, uv[i].x);
-
-        mesh.uv = uv;
-        meshFilter.sharedMesh = mesh;
     }
 
     private static bool HasCanvasMaterial(Material[] materials)
