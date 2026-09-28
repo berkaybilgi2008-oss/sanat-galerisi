@@ -70,16 +70,18 @@ public sealed class GalleryPainting : MonoBehaviour
             collider.enabled = false;
 
         transform.SetParent(playerCamera, false);
+
+        // Elde taşıma noktası: tablo kameraya child olur ve oyuncuyla birebir
+        // birlikte hareket eder. Bu yüzden dünya koordinatına değil, kameranın
+        // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Elde de sahnedeki yönü aynen koru. Yan için üreticide kullanılan
-        // aynı -90 derece yüzey dönüşünü kullanıyoruz.
+        // Modelin yüzü +Z'dir. Yalnızca klasörün yönünü uygula:
+        // Dik = dik, Yan = yatay. Resmin UV'sine ayrıca dönüş yok.
         transform.localRotation = isHorizontal
             ? Quaternion.Euler(0f, 0f, -90f)
             : Quaternion.identity;
 
-        // Generator zaten fiziksel tabloya PaintingScale uyguladı. Elde tekrar
-        // küçültüp/büyütmek yerine mevcut dünya ölçeğini koru.
         transform.localScale = Vector3.one * holdScale;
 
         Debug.Log("Tablo alındı: " + displayName);
@@ -114,15 +116,14 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Modelin gerçek ön yüzü -Z eksenine baktığı için önce duvara doğru
-        // yüzünü çeviriyoruz. Sonra yerde kullanılan Yan/Dik yönünü koruyoruz.
+        // Modelin ön yüzü +Z'dir. LookRotation'ın forward'ı doğrudan
+        // duvar normaline bakacağı için ekstra 180 derece çevirmiyoruz.
         Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
-        Quaternion modelFront = Quaternion.Euler(0f, 180f, 0f);
         Quaternion orientation = isHorizontal
             ? Quaternion.Euler(0f, 0f, -90f)
             : Quaternion.identity;
 
-        transform.rotation = faceWall * modelFront * orientation;
+        transform.rotation = faceWall * orientation;
 
         transform.localScale = Vector3.one * holdScale;
 
