@@ -114,10 +114,14 @@ public static class GallerySceneBuilder
 
     private static void CreateGalleryPainting()
     {
-        if (GameObject.Find("Gallery Painting") != null)
+        if (GameObject.Find("Gallery Painting V2") != null)
             return;
 
-        GameObject painting = new GameObject("Gallery Painting");
+        GameObject oldPainting = GameObject.Find("Gallery Painting");
+        if (oldPainting != null)
+            Object.DestroyImmediate(oldPainting);
+
+        GameObject painting = new GameObject("Gallery Painting V2");
         painting.transform.position = new Vector3(0f, 1.75f, 4.28f);
         painting.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
 
