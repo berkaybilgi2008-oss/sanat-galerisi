@@ -93,10 +93,11 @@ public sealed class GalleryPainting : MonoBehaviour
         // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Modelin yüzü +Z'dir. Yalnızca klasörün yönünü uygula:
-        // Dik = dik, Yan = yatay. Resmin UV'sine ayrıca dönüş yok.
+        // Spawn'da bütün çerçeveler dikti. Elde ise Yan klasöründeki
+        // tablolar fiziksel olarak 90° yatay çevrilir; Dik olanlar dik kalır.
+        // İç resmin UV'sine burada tekrar dokunmuyoruz.
         transform.localRotation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, 90f)
+            ? Quaternion.Euler(0f, 0f, -90f)
             : Quaternion.identity;
 
         transform.localScale = Vector3.one * holdScale;
@@ -133,14 +134,15 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Spawn'daki tablonun mevcut "up" yönünü referans alıyoruz.
-        // Bu yönü duvar düzlemine taşıyoruz; böylece duvara geçerken
-        // resmin kendi dönüşü değişmiyor, sadece tablo duvara bakıyor.
-        Vector3 wallUp = Vector3.ProjectOnPlane(transform.up, normal).normalized;
-        if (wallUp.sqrMagnitude < 0.0001f)
-            wallUp = Vector3.ProjectOnPlane(Vector3.up, normal).normalized;
+        // Önce tabloyu duvara bakacak şekilde yerleştiriyoruz.
+        // Ardından yalnızca Yan tabloları kendi yüzey eksenlerinde 90°
+        // çeviriyoruz. Böylece spawn dik, elde yatay ve duvarda yatay olur.
+        Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
+        Quaternion orientation = isHorizontal
+            ? Quaternion.Euler(0f, 0f, -90f)
+            : Quaternion.identity;
 
-        transform.rotation = Quaternion.LookRotation(normal, wallUp);
+        transform.rotation = faceWall * orientation;
 
         transform.localScale = Vector3.one * holdScale;
 
