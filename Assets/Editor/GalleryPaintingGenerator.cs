@@ -199,6 +199,12 @@ public static class GalleryPaintingGenerator
                     material.name.IndexOf("Tuval", StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
 
+                // The physical model is portrait before the Yan rotation:
+                // its long edge is local Y. Make the artwork's long edge
+                // map to that same local Y edge before rotating the whole painting.
+                // This is based on the actual image dimensions, not just the folder name.
+                RotateCanvasUvIfNeeded(renderer, source.Texture);
+
                 Material copy = new Material(material);
                 copy.name = "Tuval - " + source.FileName;
                 copy.mainTexture = source.Texture;
@@ -256,6 +262,29 @@ public static class GalleryPaintingGenerator
 
         interaction.SetDisplayName(source.Artist + " - " + source.FileName);
         interaction.SetHorizontal(source.IsHorizontal);
+    }
+
+    private static void RotateCanvasUvIfNeeded(Renderer renderer, Texture2D texture)
+    {
+        MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
+        if (meshFilter == null || meshFilter.sharedMesh == null || texture == null)
+            return;
+
+        // The canvas UV is portrait (local X = short edge, local Y = long edge).
+        // If the source image is landscape, rotate its UV mapping 90 degrees so
+        // the image's long edge lands on the model's long edge.
+        if (texture.width <= texture.height)
+            return;
+
+        Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
+        mesh.name = meshFilter.sharedMesh.name + " - Gallery UV";
+        Vector2[] uv = mesh.uv;
+
+        for (int i = 0; i < uv.Length; i++)
+            uv[i] = new Vector2(uv[i].y, 1f - uv[i].x);
+
+        mesh.uv = uv;
+        meshFilter.sharedMesh = mesh;
     }
 
     private sealed class PaintingSource
