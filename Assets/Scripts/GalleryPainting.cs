@@ -72,11 +72,14 @@ public sealed class GalleryPainting : MonoBehaviour
         transform.SetParent(playerCamera, false);
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Elde de modelin yatay/dik yönünü koru.
+        // Elde de sahnedeki yönü aynen koru. Yan için üreticide kullanılan
+        // aynı -90 derece yüzey dönüşünü kullanıyoruz.
         transform.localRotation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, 90f)
+            ? Quaternion.Euler(0f, 0f, -90f)
             : Quaternion.identity;
 
+        // Generator zaten fiziksel tabloya PaintingScale uyguladı. Elde tekrar
+        // küçültüp/büyütmek yerine mevcut dünya ölçeğini koru.
         transform.localScale = Vector3.one * holdScale;
 
         Debug.Log("Tablo alındı: " + displayName);
@@ -116,7 +119,7 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // OBJ doğal hali dikey; yatay tablo için Z ekseninde 90 derece.
         transform.rotation = faceWall * (isHorizontal
-            ? Quaternion.Euler(0f, 0f, 90f)
+            ? Quaternion.Euler(0f, 0f, -90f)
             : Quaternion.identity);
 
         transform.localScale = Vector3.one * holdScale;
