@@ -199,6 +199,12 @@ public static class GalleryPaintingGenerator
                     material.name.IndexOf("Tuval", StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
 
+                // Yan klasöründeki görsel, fiziksel tablo yataya dönerken
+                // görselin de yatay kalması için tuval UV'sinde ters yönde döndürülür.
+                // Yön seçimi yalnızca klasörden gelir; resmin piksel ölçülerine bakılmaz.
+                if (source.IsHorizontal)
+                    RotateCanvasUv(renderer);
+
                 Material copy = new Material(material);
                 copy.name = "Tuval - " + source.FileName;
                 copy.mainTexture = source.Texture;
@@ -256,6 +262,24 @@ public static class GalleryPaintingGenerator
 
         interaction.SetDisplayName(source.Artist + " - " + source.FileName);
         interaction.SetHorizontal(source.IsHorizontal);
+    }
+
+    private static void RotateCanvasUv(Renderer renderer)
+    {
+        MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
+        if (meshFilter == null || meshFilter.sharedMesh == null)
+            return;
+
+        Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
+        mesh.name = meshFilter.sharedMesh.name + " - Gallery Yan UV";
+        Vector2[] uv = mesh.uv;
+
+        // 90° texture rotation, opposite to the physical Yan frame rotation.
+        for (int i = 0; i < uv.Length; i++)
+            uv[i] = new Vector2(uv[i].y, 1f - uv[i].x);
+
+        mesh.uv = uv;
+        meshFilter.sharedMesh = mesh;
     }
 
     private sealed class PaintingSource
