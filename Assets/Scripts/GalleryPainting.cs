@@ -36,10 +36,10 @@ public sealed class GalleryPainting : MonoBehaviour
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
         // Kameranın +Z yönü oyuncudan dışarı baktığı için tabloyu 180° Y
         // döndürerek yüzünü oyuncuya çeviriyoruz. Yan ise ayrıca 90° yatay.
-        transform.localRotation = Quaternion.Euler(0f, 180f, 0f) *
-            (isHorizontal
-                ? Quaternion.Euler(0f, 0f, -90f)
-                : Quaternion.identity);
+        transform.localRotation = Quaternion.Euler(
+            0f,
+            180f,
+            isHorizontal ? -90f : 0f);
     }
 
     private void Update()
@@ -62,38 +62,6 @@ public sealed class GalleryPainting : MonoBehaviour
         TryPickUp();
     }
 
-    private void RotateArtworkUvForHorizontalFrame()
-    {
-        if (!isHorizontal || artworkCompensated)
-            return;
-
-        foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
-        {
-            if (renderer.sharedMaterial == null ||
-                renderer.sharedMaterial.name.IndexOf("Tuval", System.StringComparison.OrdinalIgnoreCase) < 0)
-                continue;
-
-            MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
-            if (meshFilter == null || meshFilter.sharedMesh == null)
-                continue;
-
-            Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
-            mesh.name = meshFilter.sharedMesh.name + " - Held Yan UV";
-            Vector2[] uv = mesh.uv;
-
-            // Spawn'da Yan resmi dik çerçevede yatay gösteriliyor.
-            // Çerçeveyi 90° fiziksel döndürdüğümüzde resmin dünya üzerindeki
-            // yatay yönünü korumak için karşı yönde UV dönüşü uyguluyoruz.
-            for (int i = 0; i < uv.Length; i++)
-                uv[i] = new Vector2(1f - uv[i].y, uv[i].x);
-
-            mesh.uv = uv;
-            meshFilter.sharedMesh = mesh;
-            artworkCompensated = true;
-            break;
-        }
-    }
-
     private void TryPickUp()
     {
         Camera camera = Camera.main;
@@ -109,10 +77,6 @@ public sealed class GalleryPainting : MonoBehaviour
 
         playerCamera = camera.transform;
         held = true;
-
-        // Yan tabloda çerçeveyi fiziksel olarak yatay çevirirken,
-        // spawn'da doğru görünen resmi yatay tut.
-        RotateArtworkUvForHorizontalFrame();
 
         body.isKinematic = true;
         body.useGravity = false;
@@ -130,12 +94,12 @@ public sealed class GalleryPainting : MonoBehaviour
         // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Spawn'da bütün çerçeveler dikti. Elde ise Yan klasöründeki
-        // tablolar fiziksel olarak 90° yatay çevrilir; Dik olanlar dik kalır.
-        // İç resmin UV'sine burada tekrar dokunmuyoruz.
-        transform.localRotation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, -90f)
-            : Quaternion.identity;
+        // Elde sadece objenin fiziksel pozisyonunu 90° döndürüyoruz.
+        // Spawn'daki resme/UV'ye dokunulmuyor.
+        transform.localRotation = Quaternion.Euler(
+            0f,
+            180f,
+            isHorizontal ? -90f : 0f);
 
         transform.localScale = Vector3.one * holdScale;
 
@@ -171,15 +135,13 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Önce tabloyu duvara bakacak şekilde yerleştiriyoruz.
-        // Ardından yalnızca Yan tabloları kendi yüzey eksenlerinde 90°
-        // çeviriyoruz. Böylece spawn dik, elde yatay ve duvarda yatay olur.
+        // Önce tabloyu duvara bakacak şekilde yerleştir.
+        // Sonra SADECE Yan tablonun kendi yüzeyinde 90° döndür.
         Quaternion faceWall = Quaternion.LookRotation(normal, Vector3.up);
-        Quaternion orientation = isHorizontal
-            ? Quaternion.Euler(0f, 0f, -90f)
-            : Quaternion.identity;
+        transform.rotation = faceWall;
 
-        transform.rotation = faceWall * orientation;
+        if (isHorizontal)
+            transform.Rotate(Vector3.forward, -90f, Space.Self);
 
         transform.localScale = Vector3.one * holdScale;
 
