@@ -7,7 +7,7 @@ public sealed class GalleryPainting : MonoBehaviour
     [SerializeField] private Key toggleKey = Key.E;
     [SerializeField] private Vector3 holdPosition = new Vector3(0.35f, -0.15f, 0.8f);
     [SerializeField] private Vector3 holdRotation = new Vector3(0f, 0f, 0f);
-    [SerializeField] private float holdScale = 0.65f;
+    [SerializeField] private float holdScale = 0.72f;
 
     private Transform originalParent;
     private Vector3 originalPosition;
@@ -19,6 +19,11 @@ public sealed class GalleryPainting : MonoBehaviour
     public void SetDisplayName(string value)
     {
         displayName = value;
+    }
+
+    public void SetPickupScale(float value)
+    {
+        holdScale = value;
     }
 
     private void Awake()
@@ -50,10 +55,18 @@ public sealed class GalleryPainting : MonoBehaviour
             return;
 
         Ray ray = new Ray(camera.transform.position, camera.transform.forward);
-        if (!Physics.Raycast(ray, out RaycastHit hit, 3f))
-            return;
+        RaycastHit[] hits = Physics.RaycastAll(ray, 3f);
+        bool hitPainting = false;
+        foreach (RaycastHit candidate in hits)
+        {
+            if (candidate.transform == transform || candidate.transform.IsChildOf(transform))
+            {
+                hitPainting = true;
+                break;
+            }
+        }
 
-        if (hit.transform != transform && !hit.transform.IsChildOf(transform))
+        if (!hitPainting)
             return;
 
         playerCamera = camera.transform;
@@ -63,7 +76,7 @@ public sealed class GalleryPainting : MonoBehaviour
         originalScale = transform.localScale;
 
         transform.SetParent(playerCamera, false);
-        transform.localPosition = holdPosition;
+        transform.localPosition = new Vector3(0.35f, -0.18f, 0.75f);
         transform.localRotation = Quaternion.Euler(holdRotation);
         transform.localScale = Vector3.one * holdScale;
 
