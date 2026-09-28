@@ -11,6 +11,7 @@ public sealed class GalleryPainting : MonoBehaviour
     private Rigidbody body;
     private Transform playerCamera;
     private Transform wallAnchor;
+    private Transform visualPivot;
     private bool held;
     private bool mounted;
     private bool isHorizontal;
@@ -23,6 +24,21 @@ public sealed class GalleryPainting : MonoBehaviour
     {
         body = GetComponent<Rigidbody>();
         if (body == null) body = gameObject.AddComponent<Rigidbody>();
+
+        // Modelin kendi mesh eksenine güvenmek yerine görünür parçaları ayrı
+        // bir pivot altında tutuyoruz. Böylece elde/duvarda 90° dönüş doğrudan
+        // görünen çerçeveye uygulanıyor.
+        visualPivot = new GameObject("Painting Visual Pivot").transform;
+        visualPivot.SetParent(transform, false);
+
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in children)
+        {
+            if (child == transform || child == visualPivot || child.IsChildOf(visualPivot))
+                continue;
+
+            child.SetParent(visualPivot, true);
+        }
     }
 
     private void LateUpdate()
@@ -33,11 +49,12 @@ public sealed class GalleryPainting : MonoBehaviour
         // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
         // Tablo doğrudan kameranın sabit local noktasında tutulur.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
-        // Elde sabit pozisyon: önce kameraya bak, sonra yalnızca
-        // Yan tablonun sabit duruşunu 90° döndür.
-        transform.localRotation = Quaternion.Euler(
+        // Kök kamera yönünü taşır; 90° dönüş doğrudan görünür
+        // çerçevenin pivotuna uygulanır.
+        transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+        visualPivot.localRotation = Quaternion.Euler(
             0f,
-            180f,
+            0f,
             isHorizontal ? -90f : 0f);
     }
 
@@ -93,11 +110,12 @@ public sealed class GalleryPainting : MonoBehaviour
         // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Sabit eldeki pozisyonu doğrudan ver.
-        // Resim/UV değişmez.
-        transform.localRotation = Quaternion.Euler(
+        // Kök yalnızca kameraya bakar; Yan'ın 90° dönüşü
+        // görünür pivot üzerinde uygulanır.
+        transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+        visualPivot.localRotation = Quaternion.Euler(
             0f,
-            180f,
+            0f,
             isHorizontal ? -90f : 0f);
 
         transform.localScale = Vector3.one * holdScale;
@@ -134,12 +152,13 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Duvardaki sabit pozisyon: duvara bak, ardından yalnızca
-        // Yan tablonun kendi yüzeyinde 90° döndür.
+        // Kök yalnızca duvara bakar. Yan'ın 90° dönüşü görünür
+        // pivot üzerinde uygulanır; resmin UV'sine dokunulmaz.
         transform.rotation = Quaternion.LookRotation(normal, Vector3.up);
-
-        if (isHorizontal)
-            transform.Rotate(0f, 0f, -90f, Space.Self);
+        visualPivot.localRotation = Quaternion.Euler(
+            0f,
+            0f,
+            isHorizontal ? -90f : 0f);
 
         transform.localScale = Vector3.one * holdScale;
 
