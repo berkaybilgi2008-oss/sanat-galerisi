@@ -68,10 +68,16 @@ public static class GalleryPaintingGenerator
             painting.transform.SetParent(root.transform, true);
             painting.transform.position = positions[i];
 
-            // OBJ'nin doğal oranı dikeydir: Dik = doğal, Yan = Z ekseninde 90 derece.
+            // Modelin doğal uzun kenarı Y eksenindedir.
+            // Dik resimde model dik kalır. Yan resimde ise modelin tamamı
+            // (çerçeve + tuval + resim) kendi yüzey ekseninde 90 derece döner.
+            // Böylece resmin uzun kenarı fiziksel tablonun uzun kenarıyla
+            // aynı yönde kalır; sadece çerçeveyi değil resmi de birlikte döndürürüz.
+            Quaternion faceForward = Quaternion.Euler(0f, 180f, 0f);
+            Quaternion turnHorizontal = Quaternion.Euler(0f, 0f, 90f);
             painting.transform.rotation = source.IsVertical
-                ? Quaternion.Euler(0f, 180f, 0f)
-                : Quaternion.Euler(0f, 180f, 90f);
+                ? faceForward
+                : faceForward * turnHorizontal;
             painting.transform.localScale = Vector3.one * PaintingScale;
 
             ConfigurePainting(painting, source);
