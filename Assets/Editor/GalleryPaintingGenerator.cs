@@ -68,13 +68,9 @@ public static class GalleryPaintingGenerator
             painting.transform.SetParent(root.transform, true);
             painting.transform.position = positions[i];
 
-            // OBJ'nin ön yüzü +Z yönündedir. Yön bilgisini yalnızca klasörden
-            // alıyoruz: Dik = 0 derece, Yan = 90 derece yüzey dönüşü.
-            // Resmin UV'sine ayrıca dönüş uygulamıyoruz; çerçeve ve resim
-            // aynı fiziksel dönüşü paylaşır.
-            painting.transform.rotation = source.IsHorizontal
-                ? Quaternion.Euler(0f, 0f, -90f)
-                : Quaternion.identity;
+            // Bütün tablolar spawn olurken fiziksel olarak DİK kalır.
+            // Yan/Dik farkı çerçeveyi değil, içindeki resmin UV yönünü belirler.
+            painting.transform.rotation = Quaternion.identity;
             painting.transform.localScale = Vector3.one * PaintingScale;
 
             ConfigurePainting(painting, source);
@@ -191,6 +187,11 @@ public static class GalleryPaintingGenerator
                     material.name.IndexOf("Tuval", StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
 
+                // Yan klasöründeki artwork, dik duran çerçevenin içinde yatay
+                // okunacak şekilde 90° UV döndürülür. Modelin kendisini çevirmiyoruz.
+                if (source.IsHorizontal)
+                    RotateYanCanvasUv(renderer);
+
                 Material copy = new Material(material);
                 copy.name = "Tuval - " + source.FileName;
                 copy.mainTexture = source.Texture;
@@ -251,6 +252,24 @@ public static class GalleryPaintingGenerator
 
         interaction.SetDisplayName(source.Artist + " - " + source.FileName);
         interaction.SetHorizontal(source.IsHorizontal);
+    }
+
+    private static void RotateYanCanvasUv(Renderer renderer)
+    {
+        MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
+        if (meshFilter == null || meshFilter.sharedMesh == null)
+            return;
+
+        Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
+        mesh.name = meshFilter.sharedMesh.name + " - Gallery Yan UV";
+        Vector2[] uv = mesh.uv;
+
+        // 90° saat yönünde UV dönüşü.
+        for (int i = 0; i < uv.Length; i++)
+            uv[i] = new Vector2(1f - uv[i].y, uv[i].x);
+
+        mesh.uv = uv;
+        meshFilter.sharedMesh = mesh;
     }
 
     private static bool HasCanvasMaterial(Material[] materials)
