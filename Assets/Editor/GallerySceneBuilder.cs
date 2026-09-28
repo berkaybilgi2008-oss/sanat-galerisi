@@ -36,6 +36,7 @@ public static class GallerySceneBuilder
 
         CreateGround();
         CreatePlayer();
+        CreateGalleryPainting();
         CreateLight();
 
         EditorSceneManager.SaveScene(scene, ScenePath);
@@ -86,6 +87,42 @@ public static class GallerySceneBuilder
         SerializedObject serializedController = new SerializedObject(controllerScript);
         serializedController.FindProperty("cameraTransform").objectReferenceValue = cameraObject.transform;
         serializedController.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void CreateGalleryPainting()
+    {
+        GameObject painting = new GameObject("Gallery Painting");
+        painting.transform.position = new Vector3(0f, 2.2f, 4f);
+        painting.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+        BoxCollider collider = painting.AddComponent<BoxCollider>();
+        collider.size = new Vector3(2.6f, 2f, 0.12f);
+
+        GameObject canvas = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        canvas.name = "Artwork";
+        canvas.transform.SetParent(painting.transform, false);
+        canvas.transform.localScale = new Vector3(2.35f, 1.75f, 0.06f);
+        Object.DestroyImmediate(canvas.GetComponent<Collider>());
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) shader = Shader.Find("Standard");
+        Material artworkMaterial = new Material(shader);
+        artworkMaterial.color = new Color(0.12f, 0.32f, 0.55f, 1f);
+        canvas.GetComponent<Renderer>().sharedMaterial = artworkMaterial;
+
+        GameObject frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        frame.name = "Frame";
+        frame.transform.SetParent(painting.transform, false);
+        frame.transform.localPosition = new Vector3(0f, 0f, 0.045f);
+        frame.transform.localScale = new Vector3(2.6f, 2f, 0.08f);
+        Object.DestroyImmediate(frame.GetComponent<Collider>());
+
+        Material frameMaterial = new Material(shader);
+        frameMaterial.color = new Color(0.04f, 0.025f, 0.015f, 1f);
+        frame.GetComponent<Renderer>().sharedMaterial = frameMaterial;
+
+        GalleryPainting paintingScript = painting.AddComponent<GalleryPainting>();
+        paintingScript.SetDisplayName("Mavi Galeri");
     }
 
     private static void CreateLight()
