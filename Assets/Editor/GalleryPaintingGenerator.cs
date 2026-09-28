@@ -191,10 +191,6 @@ public static class GalleryPaintingGenerator
                     material.name.IndexOf("Tuval", StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
 
-                // Yan klasörü için sabit 90° UV dönüşü. Görselin boyutlarına bakılmaz.
-                if (source.IsHorizontal)
-                    RotateYanCanvasUv(renderer);
-
                 Material copy = new Material(material);
                 copy.name = "Tuval - " + source.FileName;
                 copy.mainTexture = source.Texture;
@@ -255,23 +251,6 @@ public static class GalleryPaintingGenerator
 
         interaction.SetDisplayName(source.Artist + " - " + source.FileName);
         interaction.SetHorizontal(source.IsHorizontal);
-    }
-
-    private static void RotateYanCanvasUv(Renderer renderer)
-    {
-        MeshFilter meshFilter = renderer.GetComponent<MeshFilter>();
-        if (meshFilter == null || meshFilter.sharedMesh == null)
-            return;
-
-        Mesh mesh = UnityEngine.Object.Instantiate(meshFilter.sharedMesh);
-        mesh.name = meshFilter.sharedMesh.name + " - Gallery Yan UV";
-        Vector2[] uv = mesh.uv;
-
-        for (int i = 0; i < uv.Length; i++)
-            uv[i] = new Vector2(uv[i].y, uv[i].x);
-
-        mesh.uv = uv;
-        meshFilter.sharedMesh = mesh;
     }
 
     private static bool HasCanvasMaterial(Material[] materials)
