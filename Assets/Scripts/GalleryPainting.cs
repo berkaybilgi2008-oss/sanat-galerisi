@@ -41,9 +41,16 @@ public sealed class GalleryPainting : MonoBehaviour
         // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
         // Tablo doğrudan kameranın sabit local noktasında tutulur.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
-        // Kök kameraya bakar. Yan/Dik kararı yalnızca klasörden gelen
-        // orientationZ ile uygulanır.
-        transform.localRotation = Quaternion.Euler(0f, 180f, orientationZ);
+        // Önce tabloyu kameraya tam karşı bakacak şekilde hizala.
+        // Yan/Dik dönüşünü modelin kendi eksenine değil, oyuncunun görüş
+        // eksenine uyguluyoruz. Böylece modelin import ekseni ne olursa olsun
+        // Yan tablo gerçekten ekranda 90° yatar.
+        transform.rotation = Quaternion.LookRotation(
+            -playerCamera.forward,
+            playerCamera.up);
+
+        if (orientationZ != 0f)
+            transform.Rotate(playerCamera.forward, orientationZ, Space.World);
     }
 
     private void Update()
@@ -98,8 +105,14 @@ public sealed class GalleryPainting : MonoBehaviour
         // local uzayındaki sabit bir noktaya bağlıdır.
         transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
 
-        // Yan ise tabloyun tamamını 90° yatır; UV'ye veya resme dokunma.
-        transform.localRotation = Quaternion.Euler(0f, 180f, orientationZ);
+        // Yan ise tabloyu kameranın görüş ekseni etrafında 90° yatır.
+        // UV'ye/resme dokunmuyoruz; yalnızca fiziksel tablo dönüşüyor.
+        transform.rotation = Quaternion.LookRotation(
+            -playerCamera.forward,
+            playerCamera.up);
+
+        if (orientationZ != 0f)
+            transform.Rotate(playerCamera.forward, orientationZ, Space.World);
 
         transform.localScale = Vector3.one * holdScale;
 
@@ -135,10 +148,12 @@ public sealed class GalleryPainting : MonoBehaviour
         Vector3 normal = wallNormal.normalized;
         transform.position = hitPoint + normal * 0.08f;
 
-        // Önce duvara bak. Ardından sadece klasörden gelen Yan bilgisine
-        // göre tüm tabloyu kendi yüzey ekseninde 90° yatır.
+        // Önce duvara tam karşı bak. Yan dönüşünü modelin local Z eksenine
+        // değil, doğrudan duvar normaline göre yapıyoruz.
         transform.rotation = Quaternion.LookRotation(normal, Vector3.up);
-        transform.Rotate(0f, 0f, orientationZ, Space.Self);
+
+        if (orientationZ != 0f)
+            transform.Rotate(normal, orientationZ, Space.World);
 
         transform.localScale = Vector3.one * holdScale;
 
