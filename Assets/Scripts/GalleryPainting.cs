@@ -47,9 +47,10 @@ public sealed class GalleryPainting : MonoBehaviour
             -playerCamera.forward,
             playerCamera.up);
 
-        // Tablo ekranın biraz ortasında ve önde; üst tarafı hafif geriye
-        // eğimli tutuluyor.
-        holdRotation *= Quaternion.Euler(-12f, 0f, isHorizontal ? 90f : 0f);
+        // Önce doğru yüz/yönü koru, sonra yalnızca kameranın sağ ekseninde
+        // küçük bir açı ver. Böylece Yan tablonun üst-alt yönü ters dönmez.
+        holdRotation *= Quaternion.Euler(0f, 0f, isHorizontal ? 90f : 0f);
+        holdRotation = Quaternion.AngleAxis(12f, playerCamera.right) * holdRotation;
         transform.rotation = holdRotation;
     }
 
@@ -103,7 +104,7 @@ public sealed class GalleryPainting : MonoBehaviour
         // Elde taşıma noktası: tablo kameraya child olur ve oyuncuyla birebir
         // birlikte hareket eder. Bu yüzden dünya koordinatına değil, kameranın
         // local uzayındaki sabit bir noktaya bağlıdır.
-        transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
+        transform.localPosition = new Vector3(0f, -0.15f, 0.85f);
 
         // Yan ise tabloyu kameranın görüş ekseni etrafında 90° yatır.
         // UV'ye/resme dokunmuyoruz; yalnızca fiziksel tablo dönüşüyor.
@@ -111,9 +112,10 @@ public sealed class GalleryPainting : MonoBehaviour
             -playerCamera.forward,
             playerCamera.up);
 
-        // Elde sabit duruş: ekranın ortasına yakın, biraz önde ve üst tarafı
-        // hafif eğimli.
-        holdRotation *= Quaternion.Euler(12f, 0f, isHorizontal ? 90f : 0f);
+        // Doğru yüz/yönü koru; eğimi kameranın sağ ekseninde ver.
+        // Böylece resmin üst-alt yönü değişmez.
+        holdRotation *= Quaternion.Euler(0f, 0f, isHorizontal ? 90f : 0f);
+        holdRotation = Quaternion.AngleAxis(12f, playerCamera.right) * holdRotation;
         transform.rotation = holdRotation;
 
         transform.localScale = Vector3.one * holdScale;
