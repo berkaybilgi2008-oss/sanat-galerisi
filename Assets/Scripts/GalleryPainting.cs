@@ -8,6 +8,9 @@ public sealed class GalleryPainting : MonoBehaviour
     [SerializeField] private float pickupDistance = 3f;
     [SerializeField] private float holdScale = 0.55f;
 
+    private static GalleryPainting heldInstance;
+    private static int lastPickupFrame = -1;
+
     private Rigidbody body;
     private Transform playerCamera;
     private Transform wallAnchor;
@@ -49,7 +52,7 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // Önce Yan/Dik yönünü sabitle. Eğim bundan sonra tablonun KENDİ
         // yatay ekseninde uygulanıyor; böylece resmin üst-alt yönü değişmez.
-        holdRotation *= Quaternion.Euler(0f, 0f, isHorizontal ? 90f : 0f);
+        holdRotation *= Quaternion.Euler(0f, 0f, isHorizontal ? -90f : 0f);
         holdRotation *= Quaternion.Euler(-12f, 0f, 0f);
         transform.rotation = holdRotation;
     }
@@ -76,6 +79,11 @@ public sealed class GalleryPainting : MonoBehaviour
 
     private void TryPickUp()
     {
+        // Aynı anda yalnızca tek tablo tutulabilir.
+        // Ayrıca üst üste duran iki tablo aynı E basışında birlikte alınmasın.
+        if (heldInstance != null || lastPickupFrame == Time.frameCount)
+            return;
+
         Camera camera = Camera.main;
         if (camera == null)
             return;
@@ -89,6 +97,8 @@ public sealed class GalleryPainting : MonoBehaviour
 
         playerCamera = camera.transform;
         held = true;
+        heldInstance = this;
+        lastPickupFrame = Time.frameCount;
 
         body.isKinematic = true;
         body.useGravity = false;
@@ -169,6 +179,8 @@ public sealed class GalleryPainting : MonoBehaviour
 
         held = false;
         mounted = true;
+        if (heldInstance == this)
+            heldInstance = null;
         playerCamera = null;
         wallAnchor = anchor;
 
@@ -187,6 +199,8 @@ public sealed class GalleryPainting : MonoBehaviour
             collider.enabled = true;
 
         held = false;
+        if (heldInstance == this)
+            heldInstance = null;
         playerCamera = null;
 
         Debug.Log("Tablo bırakıldı: " + displayName);
