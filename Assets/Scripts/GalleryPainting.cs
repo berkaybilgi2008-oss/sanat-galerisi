@@ -47,10 +47,10 @@ public sealed class GalleryPainting : MonoBehaviour
             -playerCamera.forward,
             playerCamera.up);
 
-        // Önce doğru yüz/yönü koru, sonra yalnızca kameranın sağ ekseninde
-        // küçük bir açı ver. Böylece Yan tablonun üst-alt yönü ters dönmez.
+        // Önce Yan/Dik yönünü sabitle. Eğim bundan sonra tablonun KENDİ
+        // yatay ekseninde uygulanıyor; böylece resmin üst-alt yönü değişmez.
         holdRotation *= Quaternion.Euler(0f, 0f, isHorizontal ? 90f : 0f);
-        holdRotation = Quaternion.AngleAxis(12f, playerCamera.right) * holdRotation;
+        holdRotation *= Quaternion.Euler(-12f, 0f, 0f);
         transform.rotation = holdRotation;
     }
 
@@ -112,10 +112,10 @@ public sealed class GalleryPainting : MonoBehaviour
             -playerCamera.forward,
             playerCamera.up);
 
-        // Doğru yüz/yönü koru; eğimi kameranın sağ ekseninde ver.
-        // Böylece resmin üst-alt yönü değişmez.
+        // Önce Yan/Dik yönünü sabitle, sonra tabloyu kendi yatay ekseninde
+        // hafifçe öne eğ. Bu ikinci dönüş resmin üst-alt yönünü bozmaz.
         holdRotation *= Quaternion.Euler(0f, 0f, isHorizontal ? 90f : 0f);
-        holdRotation = Quaternion.AngleAxis(12f, playerCamera.right) * holdRotation;
+        holdRotation *= Quaternion.Euler(-12f, 0f, 0f);
         transform.rotation = holdRotation;
 
         transform.localScale = Vector3.one * holdScale;
