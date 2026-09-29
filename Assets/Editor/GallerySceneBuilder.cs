@@ -64,11 +64,28 @@ public static class GallerySceneBuilder
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
         CreateGalleryWall();
+
+        // Eski tekil/prototip tablo sahnede kalırsa yeni GalleryPainting
+        // sistemi hiç devreye girmez. Özellikle "Gallery Painting V2"
+        // objesi klasör yön bilgisini SetHorizontal ile almıyordu.
+        // Önce bu eski objeleri temizle, sonra yalnızca yeni üretici sistemini kullan.
+        RemoveOldPrototypePaintingsInScene();
+
         GalleryPaintingGenerator.GenerateIfNeeded();
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         AssetDatabase.SaveAssets();
+    }
+
+    private static void RemoveOldPrototypePaintingsInScene()
+    {
+        foreach (string oldName in new[] { "Gallery Painting V2", "Gallery Painting" })
+        {
+            GameObject old = GameObject.Find(oldName);
+            if (old != null)
+                UnityEngine.Object.DestroyImmediate(old);
+        }
     }
 
     private static void CreateGround()
