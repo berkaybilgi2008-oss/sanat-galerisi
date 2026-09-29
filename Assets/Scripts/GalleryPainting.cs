@@ -13,18 +13,16 @@ public sealed class GalleryPainting : MonoBehaviour
     private Transform wallAnchor;
     private bool held;
     private bool mounted;
-    private bool isHorizontal;
 
-    // Bu açı yalnızca Assets/resim/.../yan klasöründen gelen tablolarda 90° olur.
-    // Görselin ölçüsüne bakmıyoruz; yön bilgisi doğrudan klasörden geliyor.
-    private float orientationZ;
+    // Yön bilgisi klasörden gelir ve sahneye serialize edilir.
+    // Böylece oyun yeniden başladığında yan/dik bilgisi kaybolmaz.
+    [SerializeField] private bool isHorizontal;
 
     public void SetDisplayName(string value) => displayName = value;
     public void SetPickupScale(float value) => holdScale = value;
     public void SetHorizontal(bool value)
     {
         isHorizontal = value;
-        orientationZ = value ? 90f : 0f;
     }
 
     private void Awake()
@@ -49,8 +47,8 @@ public sealed class GalleryPainting : MonoBehaviour
             -playerCamera.forward,
             playerCamera.up);
 
-        if (orientationZ != 0f)
-            transform.Rotate(playerCamera.forward, orientationZ, Space.World);
+        if (isHorizontal)
+            transform.Rotate(playerCamera.forward, 90f, Space.World);
     }
 
     private void Update()
@@ -111,8 +109,8 @@ public sealed class GalleryPainting : MonoBehaviour
             -playerCamera.forward,
             playerCamera.up);
 
-        if (orientationZ != 0f)
-            transform.Rotate(playerCamera.forward, orientationZ, Space.World);
+        if (isHorizontal)
+            transform.Rotate(playerCamera.forward, 90f, Space.World);
 
         transform.localScale = Vector3.one * holdScale;
 
@@ -152,8 +150,8 @@ public sealed class GalleryPainting : MonoBehaviour
         // değil, doğrudan duvar normaline göre yapıyoruz.
         transform.rotation = Quaternion.LookRotation(normal, Vector3.up);
 
-        if (orientationZ != 0f)
-            transform.Rotate(normal, orientationZ, Space.World);
+        if (isHorizontal)
+            transform.Rotate(normal, 90f, Space.World);
 
         transform.localScale = Vector3.one * holdScale;
 
