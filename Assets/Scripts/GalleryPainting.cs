@@ -67,16 +67,56 @@ public sealed class GalleryPainting : MonoBehaviour
         if (!Keyboard.current[interactKey].wasPressedThisFrame)
             return;
 
-        if (mounted)
-            return;
-
         if (held)
         {
             TryMountOrDrop();
             return;
         }
 
+        if (mounted)
+        {
+            TryPickUpMounted();
+            return;
+        }
+
         TryPickUp();
+    }
+
+    private void TryPickUpMounted()
+    {
+        if (heldInstance != null || lastPickupFrame == Time.frameCount)
+            return;
+
+        Camera camera = Camera.main;
+        if (camera == null)
+            return;
+
+        Ray ray = new Ray(camera.transform.position, camera.transform.forward);
+        if (!Physics.Raycast(ray, out RaycastHit hit, pickupDistance))
+            return;
+
+        if (hit.transform != transform && !hit.transform.IsChildOf(transform))
+            return;
+
+        // Asılı tabloyu tekrar elde alınabilir hale getir.
+        playerCamera = camera.transform;
+        held = true;
+        mounted = false;
+        heldInstance = this;
+        lastPickupFrame = Time.frameCount;
+
+        transform.SetParent(playerCamera, false);
+        transform.localPosition = new Vector3(0f, -0.15f, 0.85f);
+
+        body.isKinematic = true;
+        body.useGravity = false;
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+
+        foreach (Collider collider in GetComponentsInChildren<Collider>())
+            collider.enabled = false;
+
+        Debug.Log("Asılı tablo geri alındı: " + displayName);
     }
 
     private void TryPickUp()
