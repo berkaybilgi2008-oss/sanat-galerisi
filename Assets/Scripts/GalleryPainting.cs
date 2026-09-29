@@ -38,7 +38,7 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
         // Tablo doğrudan kameranın sabit local noktasında tutulur.
-        transform.localPosition = new Vector3(0f, -0.05f, 1.0f);
+        transform.localPosition = new Vector3(0f, -0.15f, 0.85f);
         // Önce tabloyu kameraya tam karşı bakacak şekilde hizala.
         // Yan/Dik dönüşünü modelin kendi eksenine değil, oyuncunun görüş
         // eksenine uyguluyoruz. Böylece modelin import ekseni ne olursa olsun
@@ -49,7 +49,7 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // Tablo ekranın biraz ortasında ve önde; üst tarafı hafif geriye
         // eğimli tutuluyor.
-        holdRotation *= Quaternion.Euler(12f, 0f, isHorizontal ? 90f : 0f);
+        holdRotation *= Quaternion.Euler(-12f, 0f, isHorizontal ? 90f : 0f);
         transform.rotation = holdRotation;
     }
 
