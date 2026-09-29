@@ -38,17 +38,19 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // Elde iken Rigidbody'nin fizik güncellemesi tabloyu geride bırakmasın.
         // Tablo doğrudan kameranın sabit local noktasında tutulur.
-        transform.localPosition = new Vector3(0.45f, -0.2f, 0.8f);
+        transform.localPosition = new Vector3(0f, -0.05f, 1.0f);
         // Önce tabloyu kameraya tam karşı bakacak şekilde hizala.
         // Yan/Dik dönüşünü modelin kendi eksenine değil, oyuncunun görüş
         // eksenine uyguluyoruz. Böylece modelin import ekseni ne olursa olsun
         // Yan tablo gerçekten ekranda 90° yatar.
-        transform.rotation = Quaternion.LookRotation(
+        Quaternion holdRotation = Quaternion.LookRotation(
             -playerCamera.forward,
             playerCamera.up);
 
-        if (isHorizontal)
-            transform.Rotate(playerCamera.forward, 90f, Space.World);
+        // Tablo ekranın biraz ortasında ve önde; üst tarafı hafif geriye
+        // eğimli tutuluyor.
+        holdRotation *= Quaternion.Euler(12f, 0f, isHorizontal ? 90f : 0f);
+        transform.rotation = holdRotation;
     }
 
     private void Update()
@@ -105,12 +107,14 @@ public sealed class GalleryPainting : MonoBehaviour
 
         // Yan ise tabloyu kameranın görüş ekseni etrafında 90° yatır.
         // UV'ye/resme dokunmuyoruz; yalnızca fiziksel tablo dönüşüyor.
-        transform.rotation = Quaternion.LookRotation(
+        Quaternion holdRotation = Quaternion.LookRotation(
             -playerCamera.forward,
             playerCamera.up);
 
-        if (isHorizontal)
-            transform.Rotate(playerCamera.forward, 90f, Space.World);
+        // Elde sabit duruş: ekranın ortasına yakın, biraz önde ve üst tarafı
+        // hafif eğimli.
+        holdRotation *= Quaternion.Euler(12f, 0f, isHorizontal ? 90f : 0f);
+        transform.rotation = holdRotation;
 
         transform.localScale = Vector3.one * holdScale;
 
