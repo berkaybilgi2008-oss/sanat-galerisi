@@ -151,7 +151,7 @@ public sealed class GalleryPainting : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(normal, Vector3.up);
 
         if (isHorizontal)
-            transform.Rotate(normal, 90f, Space.World);
+            transform.Rotate(normal, -90f, Space.World);
 
         transform.localScale = Vector3.one * holdScale;
 
